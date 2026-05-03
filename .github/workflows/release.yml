@@ -83,47 +83,41 @@ jobs:
                   HUB_SHA="$(sha256sum "$HUB_ARCHIVE" | awk '{ print $1 }')"
 
                   # Generate Hub Metadata
-                  cat <<EOF > hub_metadata.yml
-    - name: espanso-uuid
-      version: "$VERSION"
-      title: "$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)"
-      description: "$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)"
-      author: "$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)"
-      tags:
-    $(grep -A 10 "tags:" _manifest.yml | grep "^  -" | sed 's/^/    /')
-      homepage: "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)"
-      archive_url: "https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-hub-${VERSION}.tar.gz"
-      archive_sha256: "$HUB_SHA"
-EOF
+                  echo "    - name: espanso-uuid" > hub_metadata.yml
+                  echo "      version: \"$VERSION\"" >> hub_metadata.yml
+                  echo "      title: \"$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
+                  echo "      description: \"$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
+                  echo "      author: \"$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
+                  echo "      tags:" >> hub_metadata.yml
+                  grep -A 10 "tags:" _manifest.yml | grep "^  -" | sed 's/^/    /' >> hub_metadata.yml
+                  echo "      homepage: \"$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
+                  echo "      archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-hub-${VERSION}.tar.gz\"" >> hub_metadata.yml
+                  echo "      archive_sha256: \"$HUB_SHA\"" >> hub_metadata.yml
+
                   echo "=== HUB PR METADATA ==="
                   cat hub_metadata.yml
 
                   # Generate Release Body
-                  cat <<EOF > release_body.md
-    ### Installation
-
-    **Via Espanso Hub (Coming soon)**
-    \`\`\`bash
-    espanso install espanso-uuid
-    \`\`\`
-
-    **Direct Git Install (External)**
-    \`\`\`bash
-    espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
-    \`\`\`
-
-    **Manual Install**
-    Download the archive for your platform below and extract it to your espanso packages folder.
-
-    ---
-    #### Hub PR Metadata
-    \`\`\`yaml
-    \$(cat hub_metadata.yml)
-    \`\`\`
-EOF
-                  # Inject the actual metadata into the body
-                  sed -i "/\\\$(cat hub_metadata.yml)/r hub_metadata.yml" release_body.md
-                  sed -i "/\\\$(cat hub_metadata.yml)/d" release_body.md
+                  echo "### Installation" > release_body.md
+                  echo "" >> release_body.md
+                  echo "**Via Espanso Hub (Coming soon)**" >> release_body.md
+                  echo "\`\`\`bash" >> release_body.md
+                  echo "espanso install espanso-uuid" >> release_body.md
+                  echo "\`\`\`" >> release_body.md
+                  echo "" >> release_body.md
+                  echo "**Direct Git Install (External)**" >> release_body.md
+                  echo "\`\`\`bash" >> release_body.md
+                  echo "espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external" >> release_body.md
+                  echo "\`\`\`" >> release_body.md
+                  echo "" >> release_body.md
+                  echo "**Manual Install**" >> release_body.md
+                  echo "Download the archive for your platform below and extract it to your espanso packages folder." >> release_body.md
+                  echo "" >> release_body.md
+                  echo "---" >> release_body.md
+                  echo "#### Hub PR Metadata" >> release_body.md
+                  echo "\`\`\`yaml" >> release_body.md
+                  cat hub_metadata.yml >> release_body.md
+                  echo "\`\`\`" >> release_body.md
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
