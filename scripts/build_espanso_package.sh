@@ -146,7 +146,7 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
     if [[ "$plat" == "windows" ]]; then
       config_var="%CONFIG%"
     fi
-    local ext=""
+    ext=""
     if [[ "$plat" == "windows" ]]; then
       ext=".exe"
     fi
