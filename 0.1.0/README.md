@@ -42,4 +42,4 @@ Use the release script from the repository root:
 ./scripts/build_espanso_package.sh
 ```
 
-The script assembles output under `dist/espanso-uuid7/0.1.0/` and can also create a compressed archive.
+The script assembles output under `dist/espanso-uuid/0.1.0/` and can also create a compressed archive.
