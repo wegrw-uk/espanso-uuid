@@ -41,7 +41,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: ${{ matrix.artifact }}
-                  path: uuid7-rs/target/release/${{ matrix.binary }}
+                  path: uuid_rs/target/release/${{ matrix.binary }}
                   retention-days: 1
 
     package:
