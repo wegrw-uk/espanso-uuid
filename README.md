@@ -36,9 +36,9 @@ espanso install espanso-uuid
 For users who want to install immediately, you can download the OS-specific pre-compiled archives. These archives are designed to be extracted directly into your Espanso packages folder.
 
 1. Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page:
-   * **Windows:** `espanso-uuid-windows-0.1.19.zip`
-   * **macOS:** `espanso-uuid-macos-0.1.19.tar.gz`
-   * **Linux:** `espanso-uuid-linux-0.1.19.tar.gz`
+   * **Windows:** `espanso-uuid-windows-1.0.0.zip`
+   * **macOS:** `espanso-uuid-macos-1.0.0.tar.gz`
+   * **Linux:** `espanso-uuid-linux-1.0.0.tar.gz`
 2. Open your Espanso matches directory by running `espanso path` and looking for the "Matches" entry.
 3. Navigate into the `packages` subfolder.
 4. Extract the downloaded archive into a folder exactly named `espanso-uuid`.
