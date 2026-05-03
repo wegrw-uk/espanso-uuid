@@ -27,8 +27,10 @@ def main():
         result = subprocess.run([bin_path, mode], capture_output=True, text=True, check=True)
         # Print the exact output without a trailing newline
         print(result.stdout, end="")
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing binary (code {e.returncode}): {e.stderr}", end="")
     except Exception as e:
-        print(f"Error executing binary: {e}", end="")
+        print(f"Error: {e}", end="")
 
 if __name__ == "__main__":
     main()

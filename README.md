@@ -36,9 +36,9 @@ espanso install espanso-uuid
 For users who want to install immediately or prefer a strict zero-dependency approach (bypassing the Python router entirely), you can download the OS-specific pre-compiled archives. These archives use absolute paths to directly invoke the native Rust binary.
 
 1. Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page:
-   * **Windows:** `espanso-uuid-windows-0.1.15.zip`
-   * **macOS:** `espanso-uuid-macos-0.1.15.tar.gz`
-   * **Linux:** `espanso-uuid-linux-0.1.15.tar.gz`
+   * **Windows:** `espanso-uuid-windows-0.1.16.zip`
+   * **macOS:** `espanso-uuid-macos-0.1.16.tar.gz`
+   * **Linux:** `espanso-uuid-linux-0.1.16.tar.gz`
 2. Open your Espanso matches directory by running `espanso path` and looking for the "Matches" entry.
 3. Navigate into the `packages` subfolder.
 4. Extract the downloaded archive into a folder exactly named `espanso-uuid`.
