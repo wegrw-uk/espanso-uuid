@@ -1,5 +1,3 @@
-filter_os: windows
-
 matches:
     - trigger: ":uuid7"
       replace: "{{output}}"
@@ -8,7 +6,7 @@ matches:
             type: script
             params:
                 args:
-                    - "%CONFIG%/packages/espanso-uuid/bin/uuid-windows.exe"
+                    - "bin/uuid-windows.exe"
                     - "7"
 
     - trigger: ":uuid4"
@@ -18,5 +16,5 @@ matches:
             type: script
             params:
                 args:
-                    - "%CONFIG%/packages/espanso-uuid/bin/uuid-windows.exe"
+                    - "bin/uuid-windows.exe"
                     - "4"

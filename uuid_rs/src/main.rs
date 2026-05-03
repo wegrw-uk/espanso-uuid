@@ -22,5 +22,6 @@ fn main() {
         }
     };
 
-    println!("{}", u);
+    // Use print! to avoid injecting an unwanted "Enter" keystroke
+    print!("{}", u);
 }
