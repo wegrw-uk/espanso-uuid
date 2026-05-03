@@ -1,4 +1,0 @@
-imports:
-  - "./_linux.yml"
-  - "./_macos.yml"
-  - "./_windows.yml"
