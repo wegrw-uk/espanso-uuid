@@ -1,7 +1,7 @@
 name: espanso-uuid
 title: UUID Generator
 description: Generate UUIDv4 and RFC 9562 UUIDv7 values with a fast native Rust binary.
-version: 0.1.17
+version: 0.1.18
 author: SoyElf
 tags:
     - uuid
