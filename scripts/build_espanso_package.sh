@@ -146,7 +146,11 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
     if [[ "$plat" == "windows" ]]; then
       config_var="%CONFIG%"
     fi
-    binary_path="${config_var}/match/packages/${PACKAGE_NAME}/bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+    local ext=""
+    if [[ "$plat" == "windows" ]]; then
+      ext=".exe"
+    fi
+    binary_path="${config_var}/match/packages/${PACKAGE_NAME}/bin/uuid-${plat}${ext}"
 
     # Generate an OS-specific package.yml that targets the exact binary with an absolute path
     cat <<EOF > "$PLAT_DIR/package.yml"

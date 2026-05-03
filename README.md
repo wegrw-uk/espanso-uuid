@@ -28,7 +28,7 @@ Only the active OS variant is loaded through Espanso's `filter_os` field.
 ### 1. Manual Installation (Recommended for Pre-compiled Binaries)
 Since this package uses a compiled Rust binary for performance, the easiest way to install it is to download a pre-compiled archive.
 
-1.  Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page (e.g., `espanso-uuid-windows-0.1.10.zip`).
+1.  Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page (e.g., `espanso-uuid-windows-0.1.11.zip`).
 2.  Open your Espanso matches directory. You can find this by running `espanso path` and looking for the "Matches" entry.
 3.  Navigate to the `packages` subfolder (create it if it doesn't exist).
 4.  Extract the downloaded archive into a folder named `espanso-uuid`.
