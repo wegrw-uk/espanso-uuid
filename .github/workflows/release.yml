@@ -89,7 +89,7 @@ jobs:
                   echo "      description: \"$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
                   echo "      author: \"$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
                   echo "      tags:" >> hub_metadata.yml
-                  grep -A 10 "tags:" _manifest.yml | grep "^  -" | sed 's/^/    /' >> hub_metadata.yml
+                  grep -A 10 "tags:" _manifest.yml | grep "^[[:space:]]*-" | sed 's/^[[:space:]]*/    /' >> hub_metadata.yml
                   echo "      homepage: \"$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
                   echo "      archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-hub-${VERSION}.tar.gz\"" >> hub_metadata.yml
                   echo "      archive_sha256: \"$HUB_SHA\"" >> hub_metadata.yml
