@@ -3,5 +3,9 @@
 **/target/
 .jj/
 .DS_Store
-.gemini/
 GEMINI.md
+
+# Allow compiled binaries in the bin directory for direct git installation
+!/bin/uuid-linux
+!/bin/uuid-macos
+!/bin/uuid-windows.exe

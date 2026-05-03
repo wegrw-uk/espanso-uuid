@@ -51,19 +51,23 @@ jobs:
         name: Package
         needs: build
         runs-on: ubuntu-latest
+        if: github.event_name == 'push'
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
             - name: Download all binaries
               uses: actions/download-artifact@v4
               with:
                   path: _binaries
 
-            - name: Assemble packages
+            - name: Assemble packages and metadata
               run: |
                   set -euo pipefail
-                  # Prepare binaries for the script
+
+                  # 1. Prepare binaries for the build script
                   mkdir -p uuid_rs/target/x86_64-unknown-linux-gnu/release
                   mkdir -p uuid_rs/target/x86_64-apple-darwin/release
                   mkdir -p uuid_rs/target/x86_64-pc-windows-gnu/release
@@ -72,51 +76,68 @@ jobs:
                   cp _binaries/uuid-macos/espanso-uuid-rs       uuid_rs/target/x86_64-apple-darwin/release/espanso-uuid-rs
                   cp _binaries/uuid-windows/espanso-uuid-rs.exe  uuid_rs/target/x86_64-pc-windows-gnu/release/espanso-uuid-rs.exe
 
-                  # Run the build script
-                  ./scripts/build_espanso_package.sh --allow-partial --skip-build
+                  # 2. Update the repository 'bin/' directory for direct installation
+                  mkdir -p bin
+                  cp _binaries/uuid-linux/espanso-uuid-rs       bin/uuid-linux
+                  cp _binaries/uuid-macos/espanso-uuid-rs       bin/uuid-macos
+                  cp _binaries/uuid-windows/espanso-uuid-rs.exe  bin/uuid-windows.exe
+                  chmod +x bin/uuid-linux bin/uuid-macos
+
+                  # 3. Run the build script to create Hub archives
+                  ./scripts/build_espanso_package.sh --allow-partial
 
                   VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
                   echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-                  # Calculate Hub SHA
+                  # 4. Calculate Hub SHA
                   HUB_ARCHIVE="dist/espanso-uuid/espanso-uuid-hub-${VERSION}.tar.gz"
                   HUB_SHA="$(sha256sum "$HUB_ARCHIVE" | awk '{ print $1 }')"
 
-                  # Generate Hub Metadata
-                  echo "    - name: espanso-uuid" > hub_metadata.yml
-                  echo "      version: \"$VERSION\"" >> hub_metadata.yml
-                  echo "      title: \"$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
-                  echo "      description: \"$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
-                  echo "      author: \"$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
-                  echo "      tags:" >> hub_metadata.yml
-                  grep -A 10 "tags:" _manifest.yml | grep "^[[:space:]]*-" | sed 's/^[[:space:]]*/    /' >> hub_metadata.yml
-                  echo "      homepage: \"$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)\"" >> hub_metadata.yml
-                  echo "      archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-hub-${VERSION}.tar.gz\"" >> hub_metadata.yml
-                  echo "      archive_sha256: \"$HUB_SHA\"" >> hub_metadata.yml
+                  # 5. Generate Hub Metadata (using printf to avoid heredoc issues)
+                  printf -- "- name: espanso-uuid\n" > hub_metadata.yml
+                  printf "  version: \"%s\"\n" "$VERSION" >> hub_metadata.yml
+                  printf "  title: \"%s\"\n" "$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+                  printf "  description: \"%s\"\n" "$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+                  printf "  author: \"%s\"\n" "$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+                  printf "  tags:\n" >> hub_metadata.yml
+                  grep -A 10 "tags:" _manifest.yml | grep "^  -" | sed 's/^/    /' >> hub_metadata.yml
+                  printf "  homepage: \"%s\"\n" "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+                  printf "  archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v%s/espanso-uuid-hub-%s.tar.gz\"\n" "$VERSION" "$VERSION" >> hub_metadata.yml
+                  printf "  archive_sha256: \"%s\"\n" "$HUB_SHA" >> hub_metadata.yml
 
-                  echo "=== HUB PR METADATA ==="
-                  cat hub_metadata.yml
-
-                  # Generate Release Body
+                  # 6. Generate Release Body
                   echo "### Installation" > release_body.md
                   echo "" >> release_body.md
-                  echo "#### 1. Via Espanso Hub (Universal / Recommended)" >> release_body.md
-                  echo "Once accepted into the Hub, this package installs across all OSs and uses a lightweight Python wrapper to route to the correct native Rust binary:" >> release_body.md
-                  echo "\`\`\`bash" >> release_body.md
+                  echo "**Via Espanso Hub (Coming soon)**" >> release_body.md
+                  echo '```bash' >> release_body.md
                   echo "espanso install espanso-uuid" >> release_body.md
-                  echo "\`\`\`" >> release_body.md
+                  echo '```' >> release_body.md
                   echo "" >> release_body.md
-                  echo "#### 2. Manual Install (Strict Zero-Dependency)" >> release_body.md
-                  echo "If you prefer a strict zero-dependency setup (bypassing Python), download the OS-specific zip or tar.gz archive below." >> release_body.md
-                  echo "Extract it into your Espanso \`match/packages/\` directory." >> release_body.md
-                  echo "See the [README](https://github.com/wegrw-uk/espanso-uuid#installation) for detailed instructions." >> release_body.md
+                  echo "**Direct Git Install (External)**" >> release_body.md
+                  echo '```bash' >> release_body.md
+                  echo "espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external" >> release_body.md
+                  echo '```' >> release_body.md
+                  echo "" >> release_body.md
+                  echo "**Manual Install**" >> release_body.md
+                  echo "Download the archive for your platform below." >> release_body.md
                   echo "" >> release_body.md
                   echo "---" >> release_body.md
                   echo "#### Hub PR Metadata" >> release_body.md
-                  echo "This snippet is for contributing to [espanso/hub](https://github.com/espanso/hub)." >> release_body.md
-                  echo "\`\`\`yaml" >> release_body.md
+                  echo '```yaml' >> release_body.md
                   cat hub_metadata.yml >> release_body.md
-                  echo "\`\`\`" >> release_body.md
+                  echo '```' >> release_body.md
+
+            - name: Commit and push binaries
+              if: github.ref == 'refs/heads/main'
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git add bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe
+                  if git commit -m "chore: update binaries for v${{ env.PACKAGE_VERSION }} [skip ci]"; then
+                    git push origin main
+                  else
+                    echo "No changes to commit"
+                  fi
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
