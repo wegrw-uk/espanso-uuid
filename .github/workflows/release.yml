@@ -91,7 +91,7 @@ jobs:
           mkdir -p "${HUB_OUT_DIR}/bin" "${FLAT_OUT_DIR}/bin"
 
           # Copy shared files
-          cp _manifest.yml package.yml README.md "${HUB_OUT_DIR}/"
+          cp _manifest.yml package.yml README.md wrapper.py "${HUB_OUT_DIR}/"
           cp _manifest.yml package.yml README.md "${FLAT_OUT_DIR}/"
 
           # Copy binaries

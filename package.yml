@@ -1,68 +1,22 @@
 matches:
-  # UUIDv7
   - trigger: ":uuid7"
-    filter_os: windows
     replace: "{{output}}"
     vars:
       - name: output
         type: script
         params:
           args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-windows.exe"
+            - "python"
+            - "%CONFIG%/match/packages/espanso-uuid/wrapper.py"
             - "7"
 
-  - trigger: ":uuid7"
-    filter_os: macos
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-macos"
-            - "7"
-
-  - trigger: ":uuid7"
-    filter_os: linux
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-linux"
-            - "7"
-
-  # UUIDv4
   - trigger: ":uuid4"
-    filter_os: windows
     replace: "{{output}}"
     vars:
       - name: output
         type: script
         params:
           args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-windows.exe"
-            - "4"
-
-  - trigger: ":uuid4"
-    filter_os: macos
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-macos"
-            - "4"
-
-  - trigger: ":uuid4"
-    filter_os: linux
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-linux"
+            - "python"
+            - "%CONFIG%/match/packages/espanso-uuid/wrapper.py"
             - "4"

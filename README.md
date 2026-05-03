@@ -5,7 +5,7 @@ This package provides triggers to generate UUIDv4 and RFC 9562 UUIDv7 values usi
 ## Requirements
 
 - Espanso installed.
-- Zero external dependencies (no Python, Node.js, or Rust toolchain required).
+- Python installed (used strictly as a cross-platform router to execute the native binary).
 
 ## Usage
 
@@ -15,16 +15,18 @@ This package provides triggers to generate UUIDv4 and RFC 9562 UUIDv7 values usi
 ## How it works
 
 The package uses a small Rust binary based on the `uuid` crate.
-The package uses Espanso's `filter_os` feature to automatically load the correct binary for your system:
+The package is split into OS-specific match files:
 
-- Linux: `bin/uuid-linux`
-- macOS: `bin/uuid-macos`
-- Windows: `bin/uuid-windows.exe`
+- Linux loads `bin/uuid-linux`
+- macOS loads `bin/uuid-macos`
+- Windows loads `bin/uuid-windows.exe`
+
+The active OS variant is automatically selected by the `wrapper.py` script.
 
 ## Installation
 
 ### 1. Espanso Hub (Coming Soon / Universal)
-Once accepted into the official Espanso Hub, this package will be installable via a single command across all operating systems.
+Once accepted into the official Espanso Hub, this package will be installable via a single command across all operating systems. It uses a lightweight Python wrapper to automatically route to the correct, high-performance Rust binary for your system.
 
 ```bash
 espanso install espanso-uuid
@@ -34,9 +36,9 @@ espanso install espanso-uuid
 For users who want to install immediately, you can download the OS-specific pre-compiled archives. These archives are designed to be extracted directly into your Espanso packages folder.
 
 1. Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page:
-   * **Windows:** `espanso-uuid-windows-0.1.18.zip`
-   * **macOS:** `espanso-uuid-macos-0.1.18.tar.gz`
-   * **Linux:** `espanso-uuid-linux-0.1.18.tar.gz`
+   * **Windows:** `espanso-uuid-windows-0.1.19.zip`
+   * **macOS:** `espanso-uuid-macos-0.1.19.tar.gz`
+   * **Linux:** `espanso-uuid-linux-0.1.19.tar.gz`
 2. Open your Espanso matches directory by running `espanso path` and looking for the "Matches" entry.
 3. Navigate into the `packages` subfolder.
 4. Extract the downloaded archive into a folder exactly named `espanso-uuid`.
