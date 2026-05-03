@@ -1,6 +1,6 @@
 [package]
 name = "espanso-uuid-rs"
-version = "0.1.21"
+version = "1.0.0"
 edition = "2024"
 
 [dependencies]
