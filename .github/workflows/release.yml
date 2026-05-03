@@ -67,33 +67,89 @@ jobs:
               run: |
                   set -euo pipefail
 
-                  # 1. Prepare binaries for the build script
-                  mkdir -p uuid_rs/target/x86_64-unknown-linux-gnu/release
-                  mkdir -p uuid_rs/target/x86_64-apple-darwin/release
-                  mkdir -p uuid_rs/target/x86_64-pc-windows-gnu/release
+                  VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
+                  echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+                  PACKAGE_NAME="espanso-uuid"
 
-                  cp _binaries/uuid-linux/espanso-uuid-rs       uuid_rs/target/x86_64-unknown-linux-gnu/release/espanso-uuid-rs
-                  cp _binaries/uuid-macos/espanso-uuid-rs       uuid_rs/target/x86_64-apple-darwin/release/espanso-uuid-rs
-                  cp _binaries/uuid-windows/espanso-uuid-rs.exe  uuid_rs/target/x86_64-pc-windows-gnu/release/espanso-uuid-rs.exe
-
-                  # 2. Update the repository 'bin/' directory for direct installation
+                  # 1. Update bin/ directory for direct installation
                   mkdir -p bin
                   cp _binaries/uuid-linux/espanso-uuid-rs       bin/uuid-linux
                   cp _binaries/uuid-macos/espanso-uuid-rs       bin/uuid-macos
                   cp _binaries/uuid-windows/espanso-uuid-rs.exe  bin/uuid-windows.exe
                   chmod +x bin/uuid-linux bin/uuid-macos
 
-                  # 3. Run the build script to create Hub archives
-                  ./scripts/build_espanso_package.sh --allow-partial
+                  # 2. Prepare distribution folders
+                  OUT_ROOT="dist"
+                  HUB_OUT_DIR="${OUT_ROOT}/${VERSION}"
+                  FLAT_OUT_DIR="${OUT_ROOT}/latest"
+                  mkdir -p "${HUB_OUT_DIR}/bin" "${FLAT_OUT_DIR}/bin"
 
-                  VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
-                  echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+                  # Copy shared files
+                  cp _manifest.yml package.yml README.md wrapper.py "${HUB_OUT_DIR}/"
+                  cp _manifest.yml package.yml README.md "${FLAT_OUT_DIR}/"
+
+                  # Copy binaries
+                  cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${HUB_OUT_DIR}/bin/"
+                  cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${FLAT_OUT_DIR}/bin/"
+
+                  # 3. Create Archives
+                  # Hub Archive
+                  (cd "${OUT_ROOT}" && tar -czf "${PACKAGE_NAME}-hub-${VERSION}.tar.gz" "${VERSION}")
+
+                  # Universal Flat Archive
+                  (cd "${FLAT_OUT_DIR}" && tar -czf "../${PACKAGE_NAME}-${VERSION}.tar.gz" .)
+                  (cd "${FLAT_OUT_DIR}" && zip -rq "../${PACKAGE_NAME}-${VERSION}.zip" .)
+
+                  # OS-Specific Archives
+                  for plat in linux macos windows; do
+                    PLAT_DIR="${OUT_ROOT}/tmp-${plat}"
+                    mkdir -p "${PLAT_DIR}/bin"
+                    cp _manifest.yml README.md "${PLAT_DIR}/"
+
+                    if [ "$plat" == "windows" ]; then
+                      BINARY_PATH='%CONFIG%/match/packages/'${PACKAGE_NAME}'/bin/uuid-windows.exe'
+                      cp bin/uuid-windows.exe "${PLAT_DIR}/bin/"
+                    else
+                      BINARY_PATH='${CONFIG}/match/packages/'${PACKAGE_NAME}'/bin/uuid-'${plat}
+                      cp bin/uuid-${plat} "${PLAT_DIR}/bin/"
+                    fi
+
+                    # Generate OS-specific package.yml
+                    cat <<EOF > "${PLAT_DIR}/package.yml"
+matches:
+  - trigger: ":uuid7"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "${BINARY_PATH}"
+            - "7"
+
+  - trigger: ":uuid4"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "${BINARY_PATH}"
+            - "4"
+EOF
+                    if [ "$plat" == "windows" ]; then
+                      (cd "${PLAT_DIR}" && zip -rq "../${PACKAGE_NAME}-windows-${VERSION}.zip" .)
+                    else
+                      tar -C "${PLAT_DIR}" -czf "${OUT_ROOT}/${PACKAGE_NAME}-${plat}-${VERSION}.tar.gz" "."
+                    fi
+                    rm -rf "${PLAT_DIR}"
+                  done
 
                   # 4. Calculate Hub SHA
-                  HUB_ARCHIVE="dist/espanso-uuid/espanso-uuid-hub-${VERSION}.tar.gz"
+                  HUB_ARCHIVE="dist/espanso-uuid-hub-${VERSION}.tar.gz"
                   HUB_SHA="$(sha256sum "$HUB_ARCHIVE" | awk '{ print $1 }')"
 
-                  # 5. Generate Hub Metadata (using printf to avoid heredoc issues)
+                  # 5. Generate Hub Metadata
                   printf -- "- name: espanso-uuid\n" > hub_metadata.yml
                   printf "  version: \"%s\"\n" "$VERSION" >> hub_metadata.yml
                   printf "  title: \"%s\"\n" "$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
@@ -127,6 +183,7 @@ jobs:
                   cat hub_metadata.yml >> release_body.md
                   echo '```' >> release_body.md
 
+
             - name: Commit and push binaries
               if: github.ref == 'refs/heads/main'
               run: |
@@ -144,8 +201,8 @@ jobs:
               with:
                   name: espanso-uuid-dist
                   path: |
-                      dist/espanso-uuid/*.tar.gz
-                      dist/espanso-uuid/*.zip
+                      dist/*.tar.gz
+                      dist/*.zip
                       hub_metadata.yml
 
             - name: Create GitHub Release
@@ -153,11 +210,11 @@ jobs:
               uses: softprops/action-gh-release@v2
               with:
                   files: |
-                      dist/espanso-uuid/espanso-uuid-hub-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
-                      dist/espanso-uuid/espanso-uuid-linux-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
+                      dist/espanso-uuid-hub-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
+                      dist/espanso-uuid-linux-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
                   generate_release_notes: true
                   body_path: release_body.md
