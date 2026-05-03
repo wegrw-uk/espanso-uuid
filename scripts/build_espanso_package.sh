@@ -164,6 +164,12 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
   mkdir -p "$OUT_ROOT"
   tar -C "$OUT_ROOT" -czf "$ARCHIVE_PATH" "$VERSION"
   echo "==> Wrote archive: $ARCHIVE_PATH"
+
+  if command -v zip >/dev/null 2>&1; then
+    ZIP_PATH="$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.zip"
+    (cd "$OUT_ROOT" && zip -rq "$ZIP_PATH" "$VERSION")
+    echo "==> Wrote archive: $ZIP_PATH"
+  fi
 fi
 
 echo "==> Done. Package directory: $OUT_DIR"

@@ -77,7 +77,14 @@ jobs:
                   cp _binaries/uuid-windows/espanso-uuid-rs.exe "$PKGDIR/bin/uuid-windows.exe"
                   chmod +x "$PKGDIR/bin/uuid-linux" "$PKGDIR/bin/uuid-macos"
 
+                  # Create archives
                   tar -C "dist/espanso-uuid" -czf "dist/espanso-uuid/espanso-uuid-${VERSION}.tar.gz" "$VERSION"
+                  zip -r "dist/espanso-uuid/espanso-uuid-${VERSION}.zip" "dist/espanso-uuid/$VERSION"
+
+                  # Copy individual binaries for direct asset upload
+                  cp _binaries/uuid-linux/espanso-uuid-rs      "dist/espanso-uuid/uuid-linux"
+                  cp _binaries/uuid-macos/espanso-uuid-rs      "dist/espanso-uuid/uuid-macos"
+                  cp _binaries/uuid-windows/espanso-uuid-rs.exe "dist/espanso-uuid/uuid-windows.exe"
 
                   echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
@@ -92,5 +99,10 @@ jobs:
               if: startsWith(github.ref, 'refs/tags/v')
               uses: softprops/action-gh-release@v2
               with:
-                  files: dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
+                  files: |
+                      dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
+                      dist/espanso-uuid/uuid-linux
+                      dist/espanso-uuid/uuid-macos
+                      dist/espanso-uuid/uuid-windows.exe
                   generate_release_notes: true
