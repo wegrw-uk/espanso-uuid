@@ -105,7 +105,7 @@ for f in _manifest.yml package.yml README.md _linux.yml _macos.yml _windows.yml;
   sed "s/packages\/$PACKAGE_NAME\/bin/packages\/$PACKAGE_NAME\/$VERSION\/bin/g" "$REPO_ROOT/$f" > "$HUB_OUT_DIR/$f"
 done
 
-HOST_TARGET="$(rustc -vV | awk '/^host:/ {print $2; exit}')"
+HOST_TARGET="$(rustc -vV | awk '/^host:/ {print $2}')"
 LINUX_OK=false; MACOS_OK=false; WINDOWS_OK=false
 
 if [[ "$BUILD_HOST" == true ]]; then
