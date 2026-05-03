@@ -25,41 +25,29 @@ Only the active OS variant is loaded through Espanso's `filter_os` field.
 
 ## Installation
 
-### Pre-compiled Binaries (Recommended)
-This is the easiest method. It downloads the pre-compiled binaries directly from the latest GitHub Release.
+### 1. Manual Installation (Recommended for Pre-compiled Binaries)
+Since this package uses a compiled Rust binary for performance, the easiest way to install it is to download a pre-compiled archive.
 
-**Windows**
-```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-windows-0.1.6.zip --external
-```
+1.  Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page (e.g., `espanso-uuid-windows-0.1.7.zip`).
+2.  Open your Espanso matches directory. You can find this by running `espanso path` and looking for the "Matches" entry.
+3.  Navigate to the `packages` subfolder (create it if it doesn't exist).
+4.  Extract the downloaded archive into a folder named `espanso-uuid`.
+    *   The path should look like `.../espanso/match/packages/espanso-uuid/package.yml`.
+5.  Restart Espanso: `espanso restart`
 
-**macOS**
-```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-macos-0.1.6.tar.gz --external
-```
+### 2. From Source (via Git)
+If you prefer to install via Git, you must compile the binary yourself.
 
-**Linux**
-```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-linux-0.1.6.tar.gz --external
-```
-
-### From Source (via Git)
-If you install directly from the Git repository, you will only download the source code. You **must** compile the binary yourself using the Rust toolchain (`cargo`).
-
-1. Install the source code via git:
-   ```bash
-   espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
-   ```
-2. Open your terminal and navigate to the newly cloned package folder (e.g., `%APPDATA%\espanso\match\packages\espanso-uuid` on Windows).
-3. Compile the binary:
-   ```bash
-   cargo build --release --manifest-path uuid_rs/Cargo.toml
-   ```
-4. Create the `bin` directory and copy the compiled executable into it:
-   * **Windows:** `mkdir bin && copy uuid_rs\target\release\espanso-uuid-rs.exe bin\uuid-windows.exe`
-   * **macOS:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-macos`
-   * **Linux:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-linux`
-5. Restart espanso: `espanso restart`
+1.  Install the source code:
+    ```bash
+    espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
+    ```
+2.  Navigate to the package folder (e.g., `%APPDATA%\espanso\match\packages\espanso-uuid` on Windows).
+3.  Compile: `cargo build --release --manifest-path uuid_rs/Cargo.toml`
+4.  Prepare the binary:
+    *   **Windows:** `mkdir bin && copy uuid_rs\target\release\espanso-uuid-rs.exe bin\uuid-windows.exe`
+    *   **macOS/Linux:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-linux` (or `uuid-macos`)
+5.  Restart Espanso: `espanso restart`
 
 ## Building and packaging
 
