@@ -21,7 +21,7 @@ The package is split into OS-specific match files:
 - macOS loads `bin/uuid-macos`
 - Windows loads `bin/uuid-windows.exe`
 
-Only the active OS variant is loaded through Espanso's `filter_os` field.
+The active OS variant is automatically selected by the `wrapper.py` script.
 
 ## Installation
 
@@ -32,38 +32,33 @@ Once accepted into the official Espanso Hub, this package will be installable vi
 espanso install espanso-uuid
 ```
 
-### 2. Pre-compiled Binaries (Strict Zero-Dependency)
+### 2. Pre-compiled Binaries (Zero-Dependency)
 For users who want to install immediately or prefer a strict zero-dependency approach (bypassing the Python router entirely), you can download the OS-specific pre-compiled archives. These archives use absolute paths to directly invoke the native Rust binary.
 
 1. Download the latest archive for your OS from the [Releases](https://github.com/wegrw-uk/espanso-uuid/releases) page:
-   * **Windows:** `espanso-uuid-windows-0.1.14.zip`
-   * **macOS:** `espanso-uuid-macos-0.1.14.tar.gz`
-   * **Linux:** `espanso-uuid-linux-0.1.14.tar.gz`
+   * **Windows:** `espanso-uuid-windows-0.1.15.zip`
+   * **macOS:** `espanso-uuid-macos-0.1.15.tar.gz`
+   * **Linux:** `espanso-uuid-linux-0.1.15.tar.gz`
 2. Open your Espanso matches directory by running `espanso path` and looking for the "Matches" entry.
 3. Navigate into the `packages` subfolder.
 4. Extract the downloaded archive into a folder exactly named `espanso-uuid`.
 5. Restart Espanso: `espanso restart`
 
-### 3. From Source (via Git)
-If you prefer to install via Git, you must compile the Rust binary yourself.
+### 3. From Source / Git (Easiest)
+This package includes pre-compiled binaries for Linux, macOS, and Windows directly in the repository. This means you can install it via Git and it will work immediately without needing to compile anything or install the Rust toolchain.
 
-1. Install the source repository:
-   ```bash
-   espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
-   ```
-2. Open your terminal and navigate to the newly cloned package folder (e.g., `%APPDATA%\espanso\match\packages\espanso-uuid` on Windows).
-3. Compile the binary: `cargo build --release --manifest-path uuid_rs/Cargo.toml`
-4. Prepare the binary (the root package uses the Python router for local testing, so you must create the expected `bin/` structure):
-   * **Windows:** `mkdir bin && copy uuid_rs\target\release\espanso-uuid-rs.exe bin\uuid-windows.exe`
-   * **macOS/Linux:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-linux` (or `uuid-macos`)
-5. Restart Espanso: `espanso restart`
+```bash
+espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
+```
+
+After installation, simply restart Espanso: `espanso restart`
 
 ## Building and packaging
 
-Use the release script from the repository root:
+The build and packaging process is fully automated via GitHub Actions. On every push to `main`, the binaries are recompiled and committed to the `bin/` directory.
+
+To manually trigger a build (requires Rust):
 
 ```bash
-./scripts/build_espanso_package.sh
+cargo build --release --manifest-path uuid_rs/Cargo.toml
 ```
-
-The script assembles output under `dist/espanso-uuid/0.1.0/` and can also create a compressed archive.
