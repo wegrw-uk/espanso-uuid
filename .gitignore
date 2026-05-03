@@ -3,3 +3,5 @@
 **/target/
 .jj/
 .DS_Store
+.gemini/
+GEMINI.md

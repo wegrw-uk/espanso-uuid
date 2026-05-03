@@ -73,7 +73,7 @@ jobs:
                   cp _binaries/uuid-windows/espanso-uuid-rs.exe  uuid_rs/target/x86_64-pc-windows-gnu/release/espanso-uuid-rs.exe
 
                   # Run the build script
-                  ./scripts/build_espanso_package.sh --allow-partial
+                  ./scripts/build_espanso_package.sh --allow-partial --skip-build
 
                   VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
                   echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
@@ -100,21 +100,21 @@ jobs:
                   # Generate Release Body
                   echo "### Installation" > release_body.md
                   echo "" >> release_body.md
-                  echo "**Via Espanso Hub (Coming soon)**" >> release_body.md
+                  echo "#### 1. Via Espanso Hub (Recommended)" >> release_body.md
+                  echo "Once accepted into the Hub, you can install with:" >> release_body.md
                   echo "\`\`\`bash" >> release_body.md
                   echo "espanso install espanso-uuid" >> release_body.md
                   echo "\`\`\`" >> release_body.md
                   echo "" >> release_body.md
-                  echo "**Direct Git Install (External)**" >> release_body.md
+                  echo "#### 2. Direct Install (External Archive)" >> release_body.md
+                  echo "Install directly from this release without waiting for the Hub:" >> release_body.md
                   echo "\`\`\`bash" >> release_body.md
-                  echo "espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external" >> release_body.md
+                  echo "espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-${VERSION}.tar.gz --external" >> release_body.md
                   echo "\`\`\`" >> release_body.md
-                  echo "" >> release_body.md
-                  echo "**Manual Install**" >> release_body.md
-                  echo "Download the archive for your platform below and extract it to your espanso packages folder." >> release_body.md
                   echo "" >> release_body.md
                   echo "---" >> release_body.md
                   echo "#### Hub PR Metadata" >> release_body.md
+                  echo "This snippet is for contributing to [espanso/hub](https://github.com/espanso/hub)." >> release_body.md
                   echo "\`\`\`yaml" >> release_body.md
                   cat hub_metadata.yml >> release_body.md
                   echo "\`\`\`" >> release_body.md

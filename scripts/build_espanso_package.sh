@@ -28,6 +28,7 @@ BUILD_HOST=true
 ATTEMPT_CROSS=true
 ALLOW_PARTIAL=false
 CREATE_ARCHIVE=true
+SKIP_BUILD=false
 
 usage() {
   cat <<'EOF'
@@ -37,6 +38,7 @@ Options:
   --host-only         Build only the current host target
   --allow-partial     Do not fail if one or more platform binaries are missing
   --no-archive        Skip creating archives
+  --skip-build        Skip compilation and only package existing binaries
   -h, --help          Show this help
 
 Output:
@@ -52,6 +54,7 @@ while [[ $# -gt 0 ]]; do
     --host-only) ATTEMPT_CROSS=false; shift ;;
     --allow-partial) ALLOW_PARTIAL=true; shift ;;
     --no-archive) CREATE_ARCHIVE=false; shift ;;
+    --skip-build) SKIP_BUILD=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "error: unknown option $1" >&2; usage >&2; exit 1 ;;
   esac
@@ -61,28 +64,32 @@ build_target() {
   local target="$1"
   local source_bin="$2"
   local dest_name="$3"
+  local built_path="$CRATE_DIR/target/$target/release/$source_bin"
 
-  echo "==> Building target: $target"
-  if cargo build --release --target "$target" --manifest-path "$CRATE_DIR/Cargo.toml"; then
-    local built_path="$CRATE_DIR/target/$target/release/$source_bin"
-    if [[ ! -f "$built_path" ]]; then
-      echo "error: build succeeded but binary not found at $built_path" >&2
+  if [[ "$SKIP_BUILD" == false ]]; then
+    echo "==> Building target: $target"
+    if ! cargo build --release --target "$target" --manifest-path "$CRATE_DIR/Cargo.toml"; then
+      echo "warn: failed to build target $target" >&2
       return 1
     fi
-
-    # Copy to both output formats
-    cp "$built_path" "$HUB_OUT_DIR/bin/$dest_name"
-    cp "$built_path" "$FLAT_OUT_DIR/bin/$dest_name"
-
-    if [[ "$dest_name" != *.exe ]]; then
-      chmod +x "$HUB_OUT_DIR/bin/$dest_name" "$FLAT_OUT_DIR/bin/$dest_name"
-    fi
-    echo "ok: wrote $dest_name"
-    return 0
+  else
+    echo "==> Skipping build for target: $target"
   fi
 
-  echo "warn: failed to build target $target" >&2
-  return 1
+  if [[ ! -f "$built_path" ]]; then
+    echo "error: binary not found at $built_path" >&2
+    return 1
+  fi
+
+  # Copy to both output formats
+  cp "$built_path" "$HUB_OUT_DIR/bin/$dest_name"
+  cp "$built_path" "$FLAT_OUT_DIR/bin/$dest_name"
+
+  if [[ "$dest_name" != *.exe ]]; then
+    chmod +x "$HUB_OUT_DIR/bin/$dest_name" "$FLAT_OUT_DIR/bin/$dest_name"
+  fi
+  echo "ok: wrote $dest_name"
+  return 0
 }
 
 echo "==> Preparing output directories"
