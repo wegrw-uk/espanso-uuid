@@ -25,22 +25,41 @@ Only the active OS variant is loaded through Espanso's `filter_os` field.
 
 ## Installation
 
-Espanso external packages can be installed directly from a URL.
+### Pre-compiled Binaries (Recommended)
+This is the easiest method. It downloads the pre-compiled binaries directly from the latest GitHub Release.
 
-### Windows
+**Windows**
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.5/espanso-uuid-windows-0.1.3.zip --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-windows-0.1.6.zip --external
 ```
 
-### macOS
+**macOS**
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.5/espanso-uuid-macos-0.1.3.tar.gz --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-macos-0.1.6.tar.gz --external
 ```
 
-### Linux
+**Linux**
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.5/espanso-uuid-linux-0.1.3.tar.gz --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.6/espanso-uuid-linux-0.1.6.tar.gz --external
 ```
+
+### From Source (via Git)
+If you install directly from the Git repository, you will only download the source code. You **must** compile the binary yourself using the Rust toolchain (`cargo`).
+
+1. Install the source code via git:
+   ```bash
+   espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
+   ```
+2. Open your terminal and navigate to the newly cloned package folder (e.g., `%APPDATA%\espanso\match\packages\espanso-uuid` on Windows).
+3. Compile the binary:
+   ```bash
+   cargo build --release --manifest-path uuid_rs/Cargo.toml
+   ```
+4. Create the `bin` directory and copy the compiled executable into it:
+   * **Windows:** `mkdir bin && copy uuid_rs\target\release\espanso-uuid-rs.exe bin\uuid-windows.exe`
+   * **macOS:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-macos`
+   * **Linux:** `mkdir -p bin && cp uuid_rs/target/release/espanso-uuid-rs bin/uuid-linux`
+5. Restart espanso: `espanso restart`
 
 ## Building and packaging
 
