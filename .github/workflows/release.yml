@@ -1,121 +1,127 @@
 name: Release
 
 on:
-    push:
-        branches: [main]
-        tags: ["v*"]
-    pull_request:
-        branches: [main]
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    build:
-        name: Build (${{ matrix.os }})
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                    - os: ubuntu-latest
-                      binary: espanso-uuid-rs
-                      artifact: uuid-linux
-                    - os: macos-latest
-                      binary: espanso-uuid-rs
-                      artifact: uuid-macos
-                    - os: windows-latest
-                      binary: espanso-uuid-rs.exe
-                      artifact: uuid-windows
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: espanso-uuid-rs
+            artifact: uuid-linux
+          - os: macos-latest
+            binary: espanso-uuid-rs
+            artifact: uuid-macos
+          - os: windows-latest
+            binary: espanso-uuid-rs.exe
+            artifact: uuid-windows
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-            - uses: Swatinem/rust-cache@v2
-              with:
-                  workspaces: uuid_rs -> target
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "uuid_rs -> target"
 
-            - name: Build release binary
-              run: cargo build --release --manifest-path uuid_rs/Cargo.toml
+      - name: Build release binary
+        run: cargo build --release --manifest-path uuid_rs/Cargo.toml
 
-            - name: Upload binary
-              uses: actions/upload-artifact@v4
-              with:
-                  name: ${{ matrix.artifact }}
-                  path: uuid_rs/target/release/${{ matrix.binary }}
-                  retention-days: 1
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: uuid_rs/target/release/${{ matrix.binary }}
+          retention-days: 1
 
-    package:
-        name: Package
-        needs: build
-        runs-on: ubuntu-latest
-        if: github.event_name == 'push'
+  package:
+    name: Package
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Download all binaries
-              uses: actions/download-artifact@v4
-              with:
-                  path: _binaries
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: _binaries
 
-            - name: Assemble packages and metadata
-              run: |
-                  set -euo pipefail
+      - name: Set Package Version
+        run: |
+          VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
+          echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-                  VERSION="$(awk '/^version:/ { print $2; exit }' _manifest.yml)"
-                  echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
-                  PACKAGE_NAME="espanso-uuid"
+      - name: Assemble packages and metadata
+        run: |
+          set -euo pipefail
+          VERSION="${{ env.PACKAGE_VERSION }}"
+          PACKAGE_NAME="espanso-uuid"
 
-                  # 1. Update bin/ directory for direct installation
-                  mkdir -p bin
-                  cp _binaries/uuid-linux/espanso-uuid-rs       bin/uuid-linux
-                  cp _binaries/uuid-macos/espanso-uuid-rs       bin/uuid-macos
-                  cp _binaries/uuid-windows/espanso-uuid-rs.exe  bin/uuid-windows.exe
-                  chmod +x bin/uuid-linux bin/uuid-macos
+          # 1. Update bin/ directory for direct installation
+          mkdir -p bin
+          cp _binaries/uuid-linux/espanso-uuid-rs       bin/uuid-linux
+          cp _binaries/uuid-macos/espanso-uuid-rs       bin/uuid-macos
+          cp _binaries/uuid-windows/espanso-uuid-rs.exe  bin/uuid-windows.exe
+          chmod +x bin/uuid-linux bin/uuid-macos
 
-                  # 2. Prepare distribution folders
-                  OUT_ROOT="dist"
-                  HUB_OUT_DIR="${OUT_ROOT}/${VERSION}"
-                  FLAT_OUT_DIR="${OUT_ROOT}/latest"
-                  mkdir -p "${HUB_OUT_DIR}/bin" "${FLAT_OUT_DIR}/bin"
+          # 2. Prepare distribution folders
+          OUT_ROOT="dist"
+          HUB_OUT_DIR="${OUT_ROOT}/${VERSION}"
+          FLAT_OUT_DIR="${OUT_ROOT}/latest"
+          mkdir -p "${HUB_OUT_DIR}/bin" "${FLAT_OUT_DIR}/bin"
 
-                  # Copy shared files
-                  cp _manifest.yml package.yml README.md wrapper.py "${HUB_OUT_DIR}/"
-                  cp _manifest.yml package.yml README.md "${FLAT_OUT_DIR}/"
+          # Copy shared files
+          cp _manifest.yml package.yml README.md wrapper.py "${HUB_OUT_DIR}/"
+          cp _manifest.yml package.yml README.md "${FLAT_OUT_DIR}/"
 
-                  # Copy binaries
-                  cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${HUB_OUT_DIR}/bin/"
-                  cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${FLAT_OUT_DIR}/bin/"
+          # Copy binaries
+          cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${HUB_OUT_DIR}/bin/"
+          cp bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe "${FLAT_OUT_DIR}/bin/"
 
-                  # 3. Create Archives
-                  # Hub Archive
-                  (cd "${OUT_ROOT}" && tar -czf "${PACKAGE_NAME}-hub-${VERSION}.tar.gz" "${VERSION}")
+          # 3. Create Archives
+          # Hub Archive
+          (cd "${OUT_ROOT}" && tar -czf "${PACKAGE_NAME}-hub-${VERSION}.tar.gz" "${VERSION}")
 
-                  # Universal Flat Archive
-                  (cd "${FLAT_OUT_DIR}" && tar -czf "../${PACKAGE_NAME}-${VERSION}.tar.gz" .)
-                  (cd "${FLAT_OUT_DIR}" && zip -rq "../${PACKAGE_NAME}-${VERSION}.zip" .)
+          # Universal Flat Archive
+          (cd "${FLAT_OUT_DIR}" && tar -czf "../${PACKAGE_NAME}-${VERSION}.tar.gz" .)
+          (cd "${FLAT_OUT_DIR}" && zip -rq "../${PACKAGE_NAME}-${VERSION}.zip" .)
 
-                  # OS-Specific Archives
-                  for plat in linux macos windows; do
-                    PLAT_DIR="${OUT_ROOT}/tmp-${plat}"
-                    mkdir -p "${PLAT_DIR}/bin"
-                    cp _manifest.yml README.md "${PLAT_DIR}/"
+          # OS-Specific Archives
+          for plat in linux macos windows; do
+            PLAT_DIR="${OUT_ROOT}/tmp-${plat}"
+            mkdir -p "${PLAT_DIR}/bin"
+            cp _manifest.yml README.md "${PLAT_DIR}/"
 
-                    if [ "$plat" == "windows" ]; then
-                      BINARY_PATH='%CONFIG%/match/packages/'${PACKAGE_NAME}'/bin/uuid-windows.exe'
-                      cp bin/uuid-windows.exe "${PLAT_DIR}/bin/"
-                    else
-                      BINARY_PATH='${CONFIG}/match/packages/'${PACKAGE_NAME}'/bin/uuid-'${plat}
-                      cp bin/uuid-${plat} "${PLAT_DIR}/bin/"
-                    fi
+            if [ "$plat" == "windows" ]; then
+              BINARY_PATH='%CONFIG%/match/packages/'${PACKAGE_NAME}'/bin/uuid-windows.exe'
+              cp bin/uuid-windows.exe "${PLAT_DIR}/bin/"
+            else
+              BINARY_PATH='${CONFIG}/match/packages/'${PACKAGE_NAME}'/bin/uuid-'${plat}
+              cp bin/uuid-${plat} "${PLAT_DIR}/bin/"
+            fi
 
-                    # Generate OS-specific package.yml
-                    cat <<EOF > "${PLAT_DIR}/package.yml"
+            # Generate OS-specific package.yml
+            cat <<EOF > "${PLAT_DIR}/package.yml"
 matches:
   - trigger: ":uuid7"
     replace: "{{output}}"
@@ -137,84 +143,83 @@ matches:
             - "${BINARY_PATH}"
             - "4"
 EOF
-                    if [ "$plat" == "windows" ]; then
-                      (cd "${PLAT_DIR}" && zip -rq "../${PACKAGE_NAME}-windows-${VERSION}.zip" .)
-                    else
-                      tar -C "${PLAT_DIR}" -czf "${OUT_ROOT}/${PACKAGE_NAME}-${plat}-${VERSION}.tar.gz" "."
-                    fi
-                    rm -rf "${PLAT_DIR}"
-                  done
+            if [ "$plat" == "windows" ]; then
+              (cd "${PLAT_DIR}" && zip -rq "../${PACKAGE_NAME}-windows-${VERSION}.zip" .)
+            else
+              tar -C "${PLAT_DIR}" -czf "${OUT_ROOT}/${PACKAGE_NAME}-${plat}-${VERSION}.tar.gz" "."
+            fi
+            rm -rf "${PLAT_DIR}"
+          done
 
-                  # 4. Calculate Hub SHA
-                  HUB_ARCHIVE="dist/espanso-uuid-hub-${VERSION}.tar.gz"
-                  HUB_SHA="$(sha256sum "$HUB_ARCHIVE" | awk '{ print $1 }')"
+          # 4. Calculate Hub SHA
+          HUB_ARCHIVE="dist/espanso-uuid-hub-${VERSION}.tar.gz"
+          HUB_SHA="$(sha256sum "$HUB_ARCHIVE" | awk '{ print $1 }')"
 
-                  # 5. Generate Hub Metadata
-                  printf -- "- name: espanso-uuid\n" > hub_metadata.yml
-                  printf "  version: \"%s\"\n" "$VERSION" >> hub_metadata.yml
-                  printf "  title: \"%s\"\n" "$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
-                  printf "  description: \"%s\"\n" "$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
-                  printf "  author: \"%s\"\n" "$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
-                  printf "  tags:\n" >> hub_metadata.yml
-                  grep -A 10 "tags:" _manifest.yml | grep "^[[:space:]]*-" | sed 's/^/    /' >> hub_metadata.yml
-                  printf "  homepage: \"%s\"\n" "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
-                  printf "  archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v%s/espanso-uuid-hub-%s.tar.gz\"\n" "$VERSION" "$VERSION" >> hub_metadata.yml
-                  printf "  archive_sha256: \"%s\"\n" "$HUB_SHA" >> hub_metadata.yml
+          # 5. Generate Hub Metadata
+          printf -- "- name: espanso-uuid\n" > hub_metadata.yml
+          printf "  version: \"%s\"\n" "$VERSION" >> hub_metadata.yml
+          printf "  title: \"%s\"\n" "$(awk -F': ' '/^title:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+          printf "  description: \"%s\"\n" "$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+          printf "  author: \"%s\"\n" "$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+          printf "  tags:\n" >> hub_metadata.yml
+          grep -A 10 "tags:" _manifest.yml | grep "^[[:space:]]*-" | sed 's/^/    /' >> hub_metadata.yml
+          printf "  homepage: \"%s\"\n" "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
+          printf "  archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v%s/espanso-uuid-hub-%s.tar.gz\"\n" "$VERSION" "$VERSION" >> hub_metadata.yml
+          printf "  archive_sha256: \"%s\"\n" "$HUB_SHA" >> hub_metadata.yml
 
-                  # 6. Generate Release Body
-                  echo "### Installation" > release_body.md
-                  echo "" >> release_body.md
-                  echo "**Via Espanso Hub (Coming soon)**" >> release_body.md
-                  echo '```bash' >> release_body.md
-                  echo "espanso install espanso-uuid" >> release_body.md
-                  echo '```' >> release_body.md
-                  echo "" >> release_body.md
-                  echo "**Direct Git Install (External)**" >> release_body.md
-                  echo '```bash' >> release_body.md
-                  echo "espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external" >> release_body.md
-                  echo '```' >> release_body.md
-                  echo "" >> release_body.md
-                  echo "**Manual Install**" >> release_body.md
-                  echo "Download the archive for your platform below." >> release_body.md
-                  echo "" >> release_body.md
-                  echo "---" >> release_body.md
-                  echo "#### Hub PR Metadata" >> release_body.md
-                  echo '```yaml' >> release_body.md
-                  cat hub_metadata.yml >> release_body.md
-                  echo '```' >> release_body.md
+          # 6. Generate Release Body
+          echo "### Installation" > release_body.md
+          echo "" >> release_body.md
+          echo "**Via Espanso Hub (Coming soon)**" >> release_body.md
+          echo '```bash' >> release_body.md
+          echo "espanso install espanso-uuid" >> release_body.md
+          echo '```' >> release_body.md
+          echo "" >> release_body.md
+          echo "**Direct Git Install (External)**" >> release_body.md
+          echo '```bash' >> release_body.md
+          echo "espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external" >> release_body.md
+          echo '```' >> release_body.md
+          echo "" >> release_body.md
+          echo "**Manual Install**" >> release_body.md
+          echo "Download the archive for your platform below." >> release_body.md
+          echo "" >> release_body.md
+          echo "---" >> release_body.md
+          echo "#### Hub PR Metadata" >> release_body.md
+          echo '```yaml' >> release_body.md
+          cat hub_metadata.yml >> release_body.md
+          echo '```' >> release_body.md
 
+      - name: Commit and push binaries
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe
+          if git commit -m "chore: update binaries for v${{ env.PACKAGE_VERSION }} [skip ci]"; then
+            git push origin main
+          else
+            echo "No changes to commit"
+          fi
 
-            - name: Commit and push binaries
-              if: github.ref == 'refs/heads/main'
-              run: |
-                  git config --local user.email "action@github.com"
-                  git config --local user.name "GitHub Action"
-                  git add bin/uuid-linux bin/uuid-macos bin/uuid-windows.exe
-                  if git commit -m "chore: update binaries for v${{ env.PACKAGE_VERSION }} [skip ci]"; then
-                    git push origin main
-                  else
-                    echo "No changes to commit"
-                  fi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: espanso-uuid-dist
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            hub_metadata.yml
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: espanso-uuid-dist
-                  path: |
-                      dist/*.tar.gz
-                      dist/*.zip
-                      hub_metadata.yml
-
-            - name: Create GitHub Release
-              if: startsWith(github.ref, 'refs/tags/v')
-              uses: softprops/action-gh-release@v2
-              with:
-                  files: |
-                      dist/espanso-uuid-hub-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
-                      dist/espanso-uuid-linux-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
-                      dist/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
-                  generate_release_notes: true
-                  body_path: release_body.md
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/espanso-uuid-hub-${{ env.PACKAGE_VERSION }}.tar.gz
+            dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
+            dist/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
+            dist/espanso-uuid-linux-${{ env.PACKAGE_VERSION }}.tar.gz
+            dist/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
+            dist/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
+          generate_release_notes: true
+          body_path: release_body.md
