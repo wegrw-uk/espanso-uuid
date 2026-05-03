@@ -98,10 +98,9 @@ mkdir -p "$HUB_OUT_DIR/bin" "$FLAT_OUT_DIR/bin"
 
 # 1. Prepare FLAT (External) package - keep paths as they are in root
 cp "$REPO_ROOT/_manifest.yml" "$REPO_ROOT/package.yml" "$REPO_ROOT/README.md" "$FLAT_OUT_DIR/"
-cp "$REPO_ROOT/_linux.yml" "$REPO_ROOT/_macos.yml" "$REPO_ROOT/_windows.yml" "$FLAT_OUT_DIR/"
 
 # 2. Prepare HUB package - inject version into paths
-for f in _manifest.yml package.yml README.md _linux.yml _macos.yml _windows.yml; do
+for f in _manifest.yml package.yml README.md; do
   sed "s/packages\/$PACKAGE_NAME\/bin/packages\/$PACKAGE_NAME\/$VERSION\/bin/g" "$REPO_ROOT/$f" > "$HUB_OUT_DIR/$f"
 done
 
@@ -133,9 +132,45 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
 
   # Flat Archive (External/Direct install)
   tar -C "$FLAT_OUT_DIR" -czf "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.tar.gz" "."
-  if command -v zip >/dev/null 2>&1; then
-    (cd "$FLAT_OUT_DIR" && zip -rq "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.zip" .)
-  fi
+  # Platform-specific archives (Exclusive package.yml per OS)
+  for plat in linux macos windows; do
+    PLAT_DIR="$OUT_ROOT/tmp-$plat"
+    mkdir -p "$PLAT_DIR/bin"
+    cp "$FLAT_OUT_DIR/_manifest.yml" "$FLAT_OUT_DIR/README.md" "$PLAT_DIR/"
+    
+    # Generate an OS-specific package.yml that targets the exact binary
+    cat <<EOF > "$PLAT_DIR/package.yml"
+matches:
+  - trigger: ":uuid7"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+            - "7"
+
+  - trigger: ":uuid4"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+            - "4"
+EOF
+
+    if [[ "$plat" == "windows" ]]; then
+      cp "$FLAT_OUT_DIR/bin/uuid-windows.exe" "$PLAT_DIR/bin/"
+      (cd "$PLAT_DIR" && zip -rq "$OUT_ROOT/${PACKAGE_NAME}-${plat}-${VERSION}.zip" .)
+    else
+      cp "$FLAT_OUT_DIR/bin/uuid-${plat}" "$PLAT_DIR/bin/"
+      tar -C "$PLAT_DIR" -czf "$OUT_ROOT/${PACKAGE_NAME}-${plat}-${VERSION}.tar.gz" "."
+    fi
+    rm -rf "$PLAT_DIR"
+  done
 fi
 
 echo "==> Done. Version: $VERSION"

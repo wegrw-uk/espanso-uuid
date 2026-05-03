@@ -136,5 +136,8 @@ jobs:
                       dist/espanso-uuid/espanso-uuid-hub-${{ env.PACKAGE_VERSION }}.tar.gz
                       dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
                       dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.zip
+                      dist/espanso-uuid/espanso-uuid-linux-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
+                      dist/espanso-uuid/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
                   generate_release_notes: true
                   body_path: release_body.md

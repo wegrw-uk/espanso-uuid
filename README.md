@@ -25,14 +25,22 @@ Only the active OS variant is loaded through Espanso's `filter_os` field.
 
 ## Installation
 
-If you are installing this manually:
+Espanso external packages can be installed directly from a URL.
 
-1. Copy the `0.1.0` folder to your Espanso packages directory:
-   - Linux: `~/.config/espanso/packages/espanso-uuid/0.1.0/`
-   - macOS: `~/Library/Application Support/espanso/packages/espanso-uuid/0.1.0/`
-   - Windows: `%AppData%/espanso/packages/espanso-uuid/0.1.0/`
-2. Ensure the Linux/macOS binaries are executable (`chmod +x bin/uuid-linux bin/uuid-macos`).
-3. Restart Espanso.
+### Windows
+```bash
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-windows-0.1.3.zip --external
+```
+
+### macOS
+```bash
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-macos-0.1.3.tar.gz --external
+```
+
+### Linux
+```bash
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-linux-0.1.3.tar.gz --external
+```
 
 ## Building and packaging
 

@@ -1,4 +1,20 @@
-imports:
-  - "./_linux.yml"
-  - "./_macos.yml"
-  - "./_windows.yml"
+matches:
+  - trigger: ":uuid7"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "bin/uuid-windows.exe" # Relative path automatically targets the package root
+            - "7"
+
+  - trigger: ":uuid4"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: script
+        params:
+          args:
+            - "bin/uuid-windows.exe"
+            - "4"
