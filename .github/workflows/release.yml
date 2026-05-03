@@ -121,28 +121,26 @@ jobs:
             fi
 
             # Generate OS-specific package.yml
-            cat <<EOF > "${PLAT_DIR}/package.yml"
-matches:
-  - trigger: ":uuid7"
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "${BINARY_PATH}"
-            - "7"
-
-  - trigger: ":uuid4"
-    replace: "{{output}}"
-    vars:
-      - name: output
-        type: script
-        params:
-          args:
-            - "${BINARY_PATH}"
-            - "4"
-EOF
+            printf "matches:\n" > "${PLAT_DIR}/package.yml"
+            printf "  - trigger: \":uuid7\"\n" >> "${PLAT_DIR}/package.yml"
+            printf "    replace: \"{{output}}\"\n" >> "${PLAT_DIR}/package.yml"
+            printf "    vars:\n" >> "${PLAT_DIR}/package.yml"
+            printf "      - name: output\n" >> "${PLAT_DIR}/package.yml"
+            printf "        type: script\n" >> "${PLAT_DIR}/package.yml"
+            printf "        params:\n" >> "${PLAT_DIR}/package.yml"
+            printf "          args:\n" >> "${PLAT_DIR}/package.yml"
+            printf "            - \"%s\"\n" "${BINARY_PATH}" >> "${PLAT_DIR}/package.yml"
+            printf "            - \"7\"\n" >> "${PLAT_DIR}/package.yml"
+            printf "\n" >> "${PLAT_DIR}/package.yml"
+            printf "  - trigger: \":uuid4\"\n" >> "${PLAT_DIR}/package.yml"
+            printf "    replace: \"{{output}}\"\n" >> "${PLAT_DIR}/package.yml"
+            printf "    vars:\n" >> "${PLAT_DIR}/package.yml"
+            printf "      - name: output\n" >> "${PLAT_DIR}/package.yml"
+            printf "        type: script\n" >> "${PLAT_DIR}/package.yml"
+            printf "        params:\n" >> "${PLAT_DIR}/package.yml"
+            printf "          args:\n" >> "${PLAT_DIR}/package.yml"
+            printf "            - \"%s\"\n" "${BINARY_PATH}" >> "${PLAT_DIR}/package.yml"
+            printf "            - \"4\"\n" >> "${PLAT_DIR}/package.yml"
             if [ "$plat" == "windows" ]; then
               (cd "${PLAT_DIR}" && zip -rq "../${PACKAGE_NAME}-windows-${VERSION}.zip" .)
             else
