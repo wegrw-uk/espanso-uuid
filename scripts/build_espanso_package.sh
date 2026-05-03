@@ -141,7 +141,14 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
     mkdir -p "$PLAT_DIR/bin"
     cp "$FLAT_OUT_DIR/_manifest.yml" "$FLAT_OUT_DIR/README.md" "$PLAT_DIR/"
     
-    # Generate an OS-specific package.yml that targets the exact binary
+    # Determine the correct CONFIG variable and path based on OS
+    local config_var="\$CONFIG"
+    if [[ "$plat" == "windows" ]]; then
+      config_var="%CONFIG%"
+    fi
+    local binary_path="${config_var}/match/packages/${PACKAGE_NAME}/bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+
+    # Generate an OS-specific package.yml that targets the exact binary with an absolute path
     cat <<EOF > "$PLAT_DIR/package.yml"
 matches:
   - trigger: ":uuid7"
@@ -151,7 +158,7 @@ matches:
         type: script
         params:
           args:
-            - "bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+            - "$binary_path"
             - "7"
 
   - trigger: ":uuid4"
@@ -161,7 +168,7 @@ matches:
         type: script
         params:
           args:
-            - "bin/uuid-$plat$([[ "$plat" == "windows" ]] && echo ".exe")"
+            - "$binary_path"
             - "4"
 EOF
 

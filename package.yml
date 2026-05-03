@@ -6,7 +6,7 @@ matches:
         type: script
         params:
           args:
-            - "bin/uuid-windows.exe" # Relative path automatically targets the package root
+            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-windows.exe"
             - "7"
 
   - trigger: ":uuid4"
@@ -16,5 +16,5 @@ matches:
         type: script
         params:
           args:
-            - "bin/uuid-windows.exe"
+            - "%CONFIG%/match/packages/espanso-uuid/bin/uuid-windows.exe"
             - "4"
