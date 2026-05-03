@@ -1,0 +1,14 @@
+[package]
+name = "espanso-uuid-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+uuid = { version = "1.23.1", features = ["v4", "v7"] }
+
+[profile.release]
+# Keep runtime performance-oriented codegen while reducing binary size.
+opt-level = 3
+strip = "symbols"
+lto = true
+codegen-units = 1

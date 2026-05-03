@@ -1,0 +1,93 @@
+name: Release
+
+on:
+    push:
+        branches: [main]
+        tags: ["v*"]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        name: Build (${{ matrix.os }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      binary: espanso-uuid-rs
+                      artifact: uuid-linux
+                    - os: macos-latest
+                      binary: espanso-uuid-rs
+                      artifact: uuid-macos
+                    - os: windows-latest
+                      binary: espanso-uuid-rs.exe
+                      artifact: uuid-windows
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: dtolnay/rust-toolchain@stable
+
+            - uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: uuid_rs -> target
+
+            - name: Build release binary
+              run: cargo build --release --manifest-path uuid_rs/Cargo.toml
+
+            - name: Upload binary
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.artifact }}
+                  path: uuid7-rs/target/release/${{ matrix.binary }}
+                  retention-days: 1
+
+    package:
+        name: Package
+        needs: build
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download all binaries
+              uses: actions/download-artifact@v4
+              with:
+                  path: _binaries
+
+            - name: Assemble Espanso package
+              run: |
+                  set -euo pipefail
+                  VERSION="$(awk '/^version:/ { print $2; exit }' 0.1.0/_manifest.yml)"
+                  PKGDIR="dist/espanso-uuid/$VERSION"
+                  mkdir -p "$PKGDIR/bin"
+
+                  # Package metadata and match files
+                  cp 0.1.0/_manifest.yml 0.1.0/package.yml 0.1.0/README.md "$PKGDIR/"
+                  cp 0.1.0/_linux.yml 0.1.0/_macos.yml 0.1.0/_windows.yml "$PKGDIR/"
+
+                  # Binaries — download-artifact places each in a subdirectory named after the artifact
+                  cp _binaries/uuid-linux/espanso-uuid-rs      "$PKGDIR/bin/uuid-linux"
+                  cp _binaries/uuid-macos/espanso-uuid-rs      "$PKGDIR/bin/uuid-macos"
+                  cp _binaries/uuid-windows/espanso-uuid-rs.exe "$PKGDIR/bin/uuid-windows.exe"
+                  chmod +x "$PKGDIR/bin/uuid-linux" "$PKGDIR/bin/uuid-macos"
+
+                  tar -C "dist/espanso-uuid" -czf "dist/espanso-uuid/espanso-uuid-${VERSION}.tar.gz" "$VERSION"
+
+                  echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+            - name: Upload package artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: espanso-uuid-${{ env.PACKAGE_VERSION }}
+                  path: dist/espanso-uuid/
+                  retention-days: 30
+
+            - name: Create GitHub Release
+              if: startsWith(github.ref, 'refs/tags/v')
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: dist/espanso-uuid/espanso-uuid-${{ env.PACKAGE_VERSION }}.tar.gz
+                  generate_release_notes: true
