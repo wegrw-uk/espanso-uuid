@@ -156,7 +156,7 @@ EOF
                   printf "  description: \"%s\"\n" "$(awk -F': ' '/^description:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
                   printf "  author: \"%s\"\n" "$(awk -F': ' '/^author:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
                   printf "  tags:\n" >> hub_metadata.yml
-                  grep -A 10 "tags:" _manifest.yml | grep "^  -" | sed 's/^/    /' >> hub_metadata.yml
+                  grep -A 10 "tags:" _manifest.yml | grep "^[[:space:]]*-" | sed 's/^/    /' >> hub_metadata.yml
                   printf "  homepage: \"%s\"\n" "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)" >> hub_metadata.yml
                   printf "  archive_url: \"https://github.com/wegrw-uk/espanso-uuid/releases/download/v%s/espanso-uuid-hub-%s.tar.gz\"\n" "$VERSION" "$VERSION" >> hub_metadata.yml
                   printf "  archive_sha256: \"%s\"\n" "$HUB_SHA" >> hub_metadata.yml
