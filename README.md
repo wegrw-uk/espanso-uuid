@@ -4,7 +4,7 @@ This package provides triggers to generate UUIDv4 and RFC 9562 UUIDv7 values usi
 
 ## Requirements
 
-- Espanso installed.
+- [Espanso](https://espanso.org/) installed.
 - Python installed (used strictly as a cross-platform router to execute the native binary).
 
 ## Usage
