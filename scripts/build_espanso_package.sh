@@ -99,9 +99,9 @@ mkdir -p "$HUB_OUT_DIR/bin" "$FLAT_OUT_DIR/bin"
 # 1. Prepare FLAT (External) package - keep paths as they are in root
 cp "$REPO_ROOT/_manifest.yml" "$REPO_ROOT/package.yml" "$REPO_ROOT/README.md" "$FLAT_OUT_DIR/"
 
-# 2. Prepare HUB package - inject version into paths
-for f in _manifest.yml package.yml README.md; do
-  sed "s/packages\/$PACKAGE_NAME\/bin/packages\/$PACKAGE_NAME\/$VERSION\/bin/g" "$REPO_ROOT/$f" > "$HUB_OUT_DIR/$f"
+# 2. Prepare HUB package
+for f in _manifest.yml package.yml README.md wrapper.py; do
+  cp "$REPO_ROOT/$f" "$HUB_OUT_DIR/"
 done
 
 HOST_TARGET="$(rustc -vV | awk '/^host:/ {print $2}')"
