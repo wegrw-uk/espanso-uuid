@@ -94,9 +94,36 @@ jobs:
       homepage: "$(awk -F': ' '/^homepage:/ { print $2 }' _manifest.yml)"
       archive_url: "https://github.com/wegrw-uk/espanso-uuid/releases/download/v${VERSION}/espanso-uuid-hub-${VERSION}.tar.gz"
       archive_sha256: "$HUB_SHA"
-    EOF
+EOF
                   echo "=== HUB PR METADATA ==="
                   cat hub_metadata.yml
+
+                  # Generate Release Body
+                  cat <<EOF > release_body.md
+    ### Installation
+
+    **Via Espanso Hub (Coming soon)**
+    \`\`\`bash
+    espanso install espanso-uuid
+    \`\`\`
+
+    **Direct Git Install (External)**
+    \`\`\`bash
+    espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
+    \`\`\`
+
+    **Manual Install**
+    Download the archive for your platform below and extract it to your espanso packages folder.
+
+    ---
+    #### Hub PR Metadata
+    \`\`\`yaml
+    \$(cat hub_metadata.yml)
+    \`\`\`
+EOF
+                  # Inject the actual metadata into the body
+                  sed -i "/\\\$(cat hub_metadata.yml)/r hub_metadata.yml" release_body.md
+                  sed -i "/\\\$(cat hub_metadata.yml)/d" release_body.md
 
             - name: Upload artifacts
               uses: actions/upload-artifact@v4
@@ -119,24 +146,4 @@ jobs:
                       dist/espanso-uuid/espanso-uuid-macos-${{ env.PACKAGE_VERSION }}.tar.gz
                       dist/espanso-uuid/espanso-uuid-windows-${{ env.PACKAGE_VERSION }}.zip
                   generate_release_notes: true
-                  body: |
-                    ### Installation
-
-                    **Via Espanso Hub (Coming soon)**
-                    ```bash
-                    espanso install espanso-uuid
-                    ```
-
-                    **Direct Git Install (External)**
-                    ```bash
-                    espanso install espanso-uuid --git https://github.com/wegrw-uk/espanso-uuid --external
-                    ```
-
-                    **Manual Install**
-                    Download the archive for your platform below and extract it to your espanso packages folder.
-
-                    ---
-                    #### Hub PR Metadata
-                    ```yaml
-                    $(cat hub_metadata.yml)
-                    ```
+                  body_path: release_body.md
