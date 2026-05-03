@@ -136,22 +136,6 @@ if [[ "$CREATE_ARCHIVE" == true ]]; then
   if command -v zip >/dev/null 2>&1; then
     (cd "$FLAT_OUT_DIR" && zip -rq "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.zip" .)
   fi
-
-  # Platform-specific archives (Inclusive)
-  for plat in linux macos windows; do
-    PLAT_DIR="$OUT_ROOT/tmp-$plat"
-    mkdir -p "$PLAT_DIR/bin"
-    cp "$FLAT_OUT_DIR/package.yml" "$FLAT_OUT_DIR/_manifest.yml" "$FLAT_OUT_DIR/README.md" "$PLAT_DIR/"
-    cp "$FLAT_OUT_DIR/_${plat}.yml" "$PLAT_DIR/"
-    if [[ "$plat" == "windows" ]]; then
-      cp "$FLAT_OUT_DIR/bin/uuid-windows.exe" "$PLAT_DIR/bin/"
-      (cd "$PLAT_DIR" && zip -rq "$OUT_ROOT/${PACKAGE_NAME}-${plat}-${VERSION}.zip" .)
-    else
-      cp "$FLAT_OUT_DIR/bin/uuid-${plat}" "$PLAT_DIR/bin/"
-      tar -C "$PLAT_DIR" -czf "$OUT_ROOT/${PACKAGE_NAME}-${plat}-${VERSION}.tar.gz" "."
-    fi
-    rm -rf "$PLAT_DIR"
-  done
 fi
 
 echo "==> Done. Version: $VERSION"
