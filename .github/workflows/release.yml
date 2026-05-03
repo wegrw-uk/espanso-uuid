@@ -100,14 +100,14 @@ jobs:
                   # Generate Release Body
                   echo "### Installation" > release_body.md
                   echo "" >> release_body.md
-                  echo "#### 1. Via Espanso Hub (Recommended)" >> release_body.md
-                  echo "Once accepted into the Hub, you can install with:" >> release_body.md
+                  echo "#### 1. Via Espanso Hub (Universal / Recommended)" >> release_body.md
+                  echo "Once accepted into the Hub, this package installs across all OSs and uses a lightweight Python wrapper to route to the correct native Rust binary:" >> release_body.md
                   echo "\`\`\`bash" >> release_body.md
                   echo "espanso install espanso-uuid" >> release_body.md
                   echo "\`\`\`" >> release_body.md
                   echo "" >> release_body.md
-                  echo "#### 2. Manual Install (Pre-compiled)" >> release_body.md
-                  echo "Download the zip or tar.gz archive for your operating system below." >> release_body.md
+                  echo "#### 2. Manual Install (Strict Zero-Dependency)" >> release_body.md
+                  echo "If you prefer a strict zero-dependency setup (bypassing Python), download the OS-specific zip or tar.gz archive below." >> release_body.md
                   echo "Extract it into your Espanso \`match/packages/\` directory." >> release_body.md
                   echo "See the [README](https://github.com/wegrw-uk/espanso-uuid#installation) for detailed instructions." >> release_body.md
                   echo "" >> release_body.md
