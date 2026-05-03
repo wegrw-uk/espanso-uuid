@@ -128,10 +128,13 @@ fi
 
 if [[ "$CREATE_ARCHIVE" == true ]]; then
   # Universal Hub Archive (includes versioned folder)
-  tar -C "$OUT_ROOT" -czf "$OUT_ROOT/${PACKAGE_NAME}-hub-${VERSION}.tar.gz" "$VERSION"
+  (cd "$OUT_ROOT" && tar -czf "${PACKAGE_NAME}-hub-${VERSION}.tar.gz" "$VERSION")
 
   # Flat Archive (External/Direct install)
-  tar -C "$FLAT_OUT_DIR" -czf "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.tar.gz" "."
+  (cd "$FLAT_OUT_DIR" && tar -czf "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.tar.gz" .)
+  if command -v zip >/dev/null 2>&1; then
+    (cd "$FLAT_OUT_DIR" && zip -rq "$OUT_ROOT/${PACKAGE_NAME}-${VERSION}.zip" .)
+  fi
   # Platform-specific archives (Exclusive package.yml per OS)
   for plat in linux macos windows; do
     PLAT_DIR="$OUT_ROOT/tmp-$plat"

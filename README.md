@@ -29,17 +29,17 @@ Espanso external packages can be installed directly from a URL.
 
 ### Windows
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-windows-0.1.3.zip --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.4/espanso-uuid-windows-0.1.3.zip --external
 ```
 
 ### macOS
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-macos-0.1.3.tar.gz --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.4/espanso-uuid-macos-0.1.3.tar.gz --external
 ```
 
 ### Linux
 ```bash
-espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.3/espanso-uuid-linux-0.1.3.tar.gz --external
+espanso install espanso-uuid --url https://github.com/wegrw-uk/espanso-uuid/releases/download/v0.1.4/espanso-uuid-linux-0.1.3.tar.gz --external
 ```
 
 ## Building and packaging
